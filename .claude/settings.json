@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(# Force *)",
+      "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\screens\\\\ocr_record_screen.dart)",
+      "Bash(findstr /V \"Analyzing\")",
+      "Bash(findstr /V \"No issues\")",
+      "Bash(findstr /V \"info -\")",
+      "Bash(findstr /V \"冗長\")",
+      "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\screens\\\\*.dart /b)",
+      "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\models\\\\*.dart /b)",
+      "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\services\\\\*.dart /b)",
+      "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\database\\\\*.dart /b)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\朱家泳\\.gradle\\caches"
+    ]
+  }
+}

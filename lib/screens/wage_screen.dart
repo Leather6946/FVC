@@ -13,7 +13,8 @@ class _WageScreenState extends State<WageScreen> {
   final _db = DatabaseHelper();
   List<Map<String, dynamic>> _summary = [];
   bool _loading = true;
-  DateTime _selectedMonth = DateTime.now();
+  DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _endDate = DateTime.now();
   final Map<int, List<Map<String, dynamic>>> _details = {};
   int? _expandedId;
 
@@ -23,18 +24,12 @@ class _WageScreenState extends State<WageScreen> {
     _load();
   }
 
-  String get _monthStart {
-    return '${_selectedMonth.year}-${_selectedMonth.month.toString().padLeft(2, '0')}-01';
-  }
-
-  String get _monthEnd {
-    final lastDay = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
-    return DateFormat('yyyy-MM-dd').format(lastDay);
-  }
+  String get _startStr => DateFormat('yyyy-MM-dd').format(_startDate);
+  String get _endStr => DateFormat('yyyy-MM-dd').format(_endDate);
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final summary = await _db.getWageSummary(_monthStart, _monthEnd);
+    final summary = await _db.getWageSummary(_startStr, _endStr);
     if (mounted) {
       setState(() {
         _summary = summary;
@@ -52,8 +47,8 @@ class _WageScreenState extends State<WageScreen> {
     }
     final detail = await _db.getEmployeeWageDetail(
       employeeId,
-      _monthStart,
-      _monthEnd,
+      _startStr,
+      _endStr,
     );
     setState(() {
       _details[employeeId] = detail;
@@ -61,18 +56,21 @@ class _WageScreenState extends State<WageScreen> {
     });
   }
 
-  Future<void> _pickMonth() async {
+  Future<void> _pickDate(bool isStart) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedMonth,
+      initialDate: isStart ? _startDate : _endDate,
       firstDate: DateTime(2024),
       lastDate: DateTime.now(),
       locale: const Locale('zh', 'CN'),
-      helpText: '选择月份',
     );
     if (picked != null) {
       setState(() {
-        _selectedMonth = DateTime(picked.year, picked.month, 1);
+        if (isStart) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
         _details.clear();
         _expandedId = null;
       });
@@ -83,7 +81,6 @@ class _WageScreenState extends State<WageScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fmt = DateFormat('yyyy年MM月');
     double totalWage = 0;
     for (final s in _summary) {
       totalWage += (s['total_wage'] as num?)?.toDouble() ?? 0;
@@ -93,19 +90,40 @@ class _WageScreenState extends State<WageScreen> {
       appBar: AppBar(title: const Text('工资计算')),
       body: Column(
         children: [
-          // 月份选择与总计
+          // 日期范围选择与总计
           Container(
             padding: const EdgeInsets.all(12),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _pickMonth,
-                    icon: const Icon(Icons.date_range),
-                    label: Text(fmt.format(_selectedMonth)),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _pickDate(true),
+                        icon: const Icon(Icons.date_range, size: 16),
+                        label: Text(
+                          _startStr,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      child: Text('~', style: TextStyle(fontSize: 13)),
+                    ),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _pickDate(false),
+                        icon: const Icon(Icons.date_range, size: 16),
+                        label: Text(
+                          _endStr,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(height: 4),
                 Text(
                   '合计: ¥${totalWage.toStringAsFixed(2)}',
                   style: theme.textTheme.titleMedium?.copyWith(

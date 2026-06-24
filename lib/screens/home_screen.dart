@@ -13,9 +13,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _empCount = 0;
-  int _prodCount = 0;
-  int _recCount = 0;
+  int _empCount = 0, _processCount = 0, _recCount = 0;
+  int _todayCount = 0;
+  double _todayWage = 0;
 
   @override
   void initState() {
@@ -26,15 +26,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadStats() async {
     final db = DatabaseHelper();
     final ec = await db.getEmployeeCount();
-    final pc = await db.getProductCount();
+    final pc = await db.getProcessCount();
     final rc = await db.getRecordCount();
+    final ts = await db.getTodayStats();
     if (mounted) {
       setState(() {
         _empCount = ec;
-        _prodCount = pc;
+        _processCount = pc;
         _recCount = rc;
+        _todayCount = (ts['cnt'] as int?) ?? 0;
+        _todayWage = (ts['wage'] as num?)?.toDouble() ?? 0;
       });
     }
+  }
+
+  void _nav(Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    ).then((_) => _loadStats());
   }
 
   @override
@@ -47,7 +57,45 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // 统计卡片行
+            // 今日概况
+            Card(
+              color: theme.colorScheme.primaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '今日概况',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _TodayItem(
+                          label: '记录数',
+                          value: '$_todayCount 条',
+                          icon: Icons.today,
+                          color: Colors.teal,
+                        ),
+                        const SizedBox(width: 24),
+                        _TodayItem(
+                          label: '工资合计',
+                          value: '¥${_todayWage.toStringAsFixed(2)}',
+                          icon: Icons.monetization_on,
+                          color: Colors.amber.shade700,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 累计统计
             Row(
               children: [
                 Expanded(
@@ -63,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _StatCard(
                     icon: Icons.build,
                     label: '工序',
-                    value: '$_prodCount',
+                    value: '$_processCount',
                     color: Colors.orange,
                   ),
                 ),
@@ -80,7 +128,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 功能菜单
             Text('功能菜单', style: theme.textTheme.titleLarge),
             const SizedBox(height: 12),
             _MenuCard(
@@ -88,21 +135,15 @@ class _HomeScreenState extends State<HomeScreen> {
               title: '员工管理',
               subtitle: '添加工人、编辑信息、删除记录',
               color: Colors.blue,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const EmployeeScreen()),
-              ).then((_) => _loadStats()),
+              onTap: () => _nav(const EmployeeScreen()),
             ),
             const SizedBox(height: 8),
             _MenuCard(
               icon: Icons.settings_outlined,
               title: '工序管理',
-              subtitle: '定义计件工序、设置单价',
+              subtitle: '定义产品类型和工序、设置单价',
               color: Colors.orange,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProductScreen()),
-              ).then((_) => _loadStats()),
+              onTap: () => _nav(const ProductScreen()),
             ),
             const SizedBox(height: 8),
             _MenuCard(
@@ -110,10 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: '计件录入',
               subtitle: '记录每日产量、查看生产明细',
               color: Colors.green,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RecordScreen()),
-              ).then((_) => _loadStats()),
+              onTap: () => _nav(const RecordScreen()),
             ),
             const SizedBox(height: 8),
             _MenuCard(
@@ -121,14 +159,43 @@ class _HomeScreenState extends State<HomeScreen> {
               title: '工资计算',
               subtitle: '按月统计工资、查看明细',
               color: Colors.purple,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const WageScreen()),
-              ),
+              onTap: () => _nav(const WageScreen()),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TodayItem extends StatelessWidget {
+  final String label, value;
+  final IconData icon;
+  final Color color;
+  const _TodayItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 4),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 12)),
+            Text(
+              value,
+              style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

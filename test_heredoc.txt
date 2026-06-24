@@ -1,0 +1,2 @@
+Single quotes ' work fine here " and double quotes too
+${dollar} is not expanded in single-quoted heredoc
