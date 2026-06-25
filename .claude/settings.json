@@ -10,7 +10,11 @@
       "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\screens\\\\*.dart /b)",
       "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\models\\\\*.dart /b)",
       "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\services\\\\*.dart /b)",
-      "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\database\\\\*.dart /b)"
+      "Bash(dir d:\\\\piece_rate_wage\\\\lib\\\\database\\\\*.dart /b)",
+      "Bash(git -c core.safecrlf=false diff --stat)",
+      "Bash(python -c \"import base64, sys; sys.stdout.reconfigure\\(encoding='utf-8'\\); print\\(base64.b64encode\\(sys.stdin.buffer.read\\(\\)\\).decode\\(\\)\\)\")",
+      "Bash(node -e \"require\\('fs'\\).writeFileSync\\('d:/piece_rate_wage/lib/screens/backup_screen.dart', 'test content\\\\n', 'utf8'\\);\")",
+      "Bash(git rm *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\朱家泳\\.gradle\\caches"

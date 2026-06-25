@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'employee_screen.dart';
 import 'product_screen.dart';
 import 'record_screen.dart';
+import 'record_query_screen.dart';
+import 'backup_screen.dart';
 import 'wage_screen.dart';
 import '../database/database_helper.dart';
 
@@ -14,8 +16,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _empCount = 0, _processCount = 0, _recCount = 0;
-  int _todayCount = 0;
-  double _todayWage = 0;
 
   @override
   void initState() {
@@ -28,14 +28,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final ec = await db.getEmployeeCount();
     final pc = await db.getProcessCount();
     final rc = await db.getRecordCount();
-    final ts = await db.getTodayStats();
     if (mounted) {
       setState(() {
         _empCount = ec;
         _processCount = pc;
         _recCount = rc;
-        _todayCount = (ts['cnt'] as int?) ?? 0;
-        _todayWage = (ts['wage'] as num?)?.toDouble() ?? 0;
       });
     }
   }
@@ -57,44 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // 今日概况
-            Card(
-              color: theme.colorScheme.primaryContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '今日概况',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _TodayItem(
-                          label: '记录数',
-                          value: '$_todayCount 条',
-                          icon: Icons.today,
-                          color: Colors.teal,
-                        ),
-                        const SizedBox(width: 24),
-                        _TodayItem(
-                          label: '工资合计',
-                          value: '¥${_todayWage.toStringAsFixed(2)}',
-                          icon: Icons.monetization_on,
-                          color: Colors.amber.shade700,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
             // 累计统计
             Row(
               children: [
@@ -149,9 +108,17 @@ class _HomeScreenState extends State<HomeScreen> {
             _MenuCard(
               icon: Icons.edit_note,
               title: '计件录入',
-              subtitle: '记录每日产量、查看生产明细',
+              subtitle: '快速录入每日产量',
               color: Colors.green,
               onTap: () => _nav(const RecordScreen()),
+            ),
+            const SizedBox(height: 8),
+            _MenuCard(
+              icon: Icons.search,
+              title: '计件查询',
+              subtitle: '按员工、包袋种类、日期查询记录',
+              color: Colors.teal,
+              onTap: () => _nav(const RecordQueryScreen()),
             ),
             const SizedBox(height: 8),
             _MenuCard(
@@ -161,41 +128,17 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.purple,
               onTap: () => _nav(const WageScreen()),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TodayItem extends StatelessWidget {
-  final String label, value;
-  final IconData icon;
-  final Color color;
-  const _TodayItem({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 4),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 12)),
-            Text(
-              value,
-              style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            const SizedBox(height: 8),
+            _MenuCard(
+              icon: Icons.backup_outlined,
+              title: '数据备份',
+              subtitle: '导出数据库到设备备份',
+              color: Colors.grey,
+              onTap: () => _nav(const BackupScreen()),
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 }

@@ -44,19 +44,21 @@ class _ProductScreenState extends State<ProductScreen> {
   // ========== 产品类型 CRUD ==========
 
   Future<void> _showTypeForm([ProductType? type]) async {
-    final ctrl = TextEditingController(text: type?.name ?? '');
+    // 变量保存输入值，controller 在 builder 内创建自动回收
+    String name = type?.name ?? '';
     final saved = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(type == null ? '添加产品类型' : '编辑产品类型'),
         content: TextField(
-          controller: ctrl,
+          controller: TextEditingController(text: name),
           decoration: const InputDecoration(
             labelText: '产品名称 *',
             border: OutlineInputBorder(),
             hintText: '如: 手提袋',
           ),
           autofocus: true,
+          onChanged: (v) => name = v,
         ),
         actions: [
           TextButton(
@@ -70,16 +72,15 @@ class _ProductScreenState extends State<ProductScreen> {
         ],
       ),
     );
-    if (saved == true && ctrl.text.trim().isNotEmpty) {
+    if (saved == true && name.trim().isNotEmpty) {
       if (type == null) {
         await _db.insertProductType(
-            ProductType(name: ctrl.text.trim(), createdAt: DateTime.now().toIso8601String()));
+            ProductType(name: name.trim(), createdAt: DateTime.now().toIso8601String()));
       } else {
-        await _db.updateProductType(ProductType(id: type.id, name: ctrl.text.trim()));
+        await _db.updateProductType(ProductType(id: type.id, name: name.trim()));
       }
       _load();
     }
-    ctrl.dispose();
   }
 
   Future<void> _deleteType(ProductType type) async {
@@ -115,10 +116,10 @@ class _ProductScreenState extends State<ProductScreen> {
   // ========== 工序 CRUD ==========
 
   Future<void> _showProcessForm(ProductType parentType, [ProcessModel? proc]) async {
-    final nameCtrl = TextEditingController(text: proc?.name ?? '');
-    final rateCtrl = TextEditingController(
-        text: proc != null ? proc.pieceRate.toString() : '');
-    final unitCtrl = TextEditingController(text: proc?.unit ?? '件');
+    // 使用变量保存输入值，controller 在 builder 内创建自动回收
+    String name = proc?.name ?? '';
+    String rate = proc != null ? proc.pieceRate.toString() : '';
+    String unit = proc?.unit ?? '件';
 
     final saved = await showDialog<bool>(
       context: context,
@@ -132,17 +133,18 @@ class _ProductScreenState extends State<ProductScreen> {
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextField(
-                controller: nameCtrl,
+                controller: TextEditingController(text: name),
                 decoration: const InputDecoration(
                   labelText: '工序名称 *',
                   border: OutlineInputBorder(),
                   hintText: '如: 车缝',
                 ),
                 autofocus: true,
+                onChanged: (v) => name = v,
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: rateCtrl,
+                controller: TextEditingController(text: rate),
                 decoration: const InputDecoration(
                   labelText: '单价(元) *',
                   border: OutlineInputBorder(),
@@ -150,15 +152,17 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
+                onChanged: (v) => rate = v,
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: unitCtrl,
+                controller: TextEditingController(text: unit),
                 decoration: const InputDecoration(
                   labelText: '单位',
                   border: OutlineInputBorder(),
                   hintText: '件',
                 ),
+                onChanged: (v) => unit = v,
               ),
             ],
           ),
@@ -177,15 +181,15 @@ class _ProductScreenState extends State<ProductScreen> {
     );
 
     if (saved == true &&
-        nameCtrl.text.trim().isNotEmpty &&
-        rateCtrl.text.trim().isNotEmpty) {
+        name.trim().isNotEmpty &&
+        rate.trim().isNotEmpty) {
       final now = DateTime.now().toIso8601String();
       final data = ProcessModel(
         id: proc?.id,
         productTypeId: parentType.id!,
-        name: nameCtrl.text.trim(),
-        pieceRate: double.tryParse(rateCtrl.text.trim()) ?? 0,
-        unit: unitCtrl.text.trim().isEmpty ? '件' : unitCtrl.text.trim(),
+        name: name.trim(),
+        pieceRate: double.tryParse(rate.trim()) ?? 0,
+        unit: unit.trim().isEmpty ? '件' : unit.trim(),
         createdAt: proc?.createdAt ?? now,
       );
       if (proc == null) {
@@ -195,9 +199,6 @@ class _ProductScreenState extends State<ProductScreen> {
       }
       _load();
     }
-    nameCtrl.dispose();
-    rateCtrl.dispose();
-    unitCtrl.dispose();
   }
 
   Future<void> _deleteProcess(ProcessModel proc) async {

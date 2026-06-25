@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:excel/excel.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../database/database_helper.dart';
 
 class WageScreen extends StatefulWidget {
@@ -78,6 +82,139 @@ class _WageScreenState extends State<WageScreen> {
     }
   }
 
+  // ==================== 导出 Excel ====================
+
+  Future<void> _exportToExcel() async {
+    if (_summary.isEmpty) {
+      _showSnackBar('暂无数据可导出');
+      return;
+    }
+
+    try {
+      _showSnackBar('正在生成 Excel...');
+
+      final excel = Excel.createExcel();
+      // Sheet 1: 工资汇总
+      final summarySheet = excel['工资汇总'];
+      summarySheet.appendRow([
+        TextCellValue('序号'),
+        TextCellValue('员工姓名'),
+        TextCellValue('部门'),
+        TextCellValue('总件数'),
+        TextCellValue('总工资(元)'),
+      ]);
+      // 加粗表头
+      for (int i = 0; i < 5; i++) {
+        summarySheet.cell(CellIndex.indexByColumnRow(
+          columnIndex: i,
+          rowIndex: 0,
+        )).cellStyle = CellStyle(bold: true);
+      }
+
+      double grandTotal = 0;
+      for (int i = 0; i < _summary.length; i++) {
+        final s = _summary[i];
+        final name = s['employee_name'] as String? ?? '';
+        final dept = s['department'] as String? ?? '';
+        final qty = (s['total_quantity'] as num?)?.toDouble() ?? 0;
+        final wage = (s['total_wage'] as num?)?.toDouble() ?? 0;
+        grandTotal += wage;
+        summarySheet.appendRow([
+          TextCellValue('${i + 1}'),
+          TextCellValue(name),
+          TextCellValue(dept),
+          IntCellValue(qty.toInt()),
+          DoubleCellValue(wage),
+        ]);
+      }
+      // 合计行
+      summarySheet.appendRow([
+        TextCellValue(''),
+        TextCellValue('合计'),
+        TextCellValue(''),
+        IntCellValue(0),
+        DoubleCellValue(grandTotal),
+      ]);
+      final lastRow = summarySheet.row(
+        summarySheet.maxRows - 1,
+      );
+      for (int i = 0; i < lastRow.length; i++) {
+        lastRow[i]!.cellStyle = CellStyle(bold: true);
+      }
+
+      // Sheet 2: 工资明细
+      final detailSheet = excel['工资明细'];
+      detailSheet.appendRow([
+        TextCellValue('序号'),
+        TextCellValue('员工姓名'),
+        TextCellValue('产品类型'),
+        TextCellValue('工序'),
+        TextCellValue('数量'),
+        TextCellValue('单价(元)'),
+        TextCellValue('小计(元)'),
+        TextCellValue('日期'),
+      ]);
+      for (int i = 0; i < 8; i++) {
+        detailSheet.cell(CellIndex.indexByColumnRow(
+          columnIndex: i,
+          rowIndex: 0,
+        )).cellStyle = CellStyle(bold: true);
+      }
+
+      int rowIdx = 1;
+      for (final s in _summary) {
+        final eid = s['employee_id'] as int;
+        final name = s['employee_name'] as String? ?? '';
+        final detail = await _db.getEmployeeWageDetail(
+          eid, _startStr, _endStr,
+        );
+        for (final d in detail) {
+          final pt = d['product_name'] as String? ?? '';
+          final pn = d['process_name'] as String? ?? '';
+          final rate = (d['piece_rate'] as num?)?.toDouble() ?? 0;
+          final dqty = (d['total_quantity'] as num?)?.toDouble() ?? 0;
+          final dwage = (d['total_wage'] as num?)?.toDouble() ?? 0;
+          final date = d['record_date'] as String? ?? '';
+          detailSheet.appendRow([
+            TextCellValue('$rowIdx'),
+            TextCellValue(name),
+            TextCellValue(pt),
+            TextCellValue(pn),
+            IntCellValue(dqty.toInt()),
+            DoubleCellValue(rate),
+            DoubleCellValue(dwage),
+            TextCellValue(date),
+          ]);
+          rowIdx++;
+        }
+      }
+
+      // 保存文件
+      final dir = await getApplicationDocumentsDirectory();
+      final fileName = '工资报表_$_startStr-$_endStr.xlsx';
+      final file = File('${dir.path}/$fileName');
+      final bytes = excel.encode();
+      if (bytes != null) await file.writeAsBytes(bytes);
+
+      // 分享文件
+      if (mounted) {
+        await Share.shareXFiles(
+          [XFile(file.path)],
+          text: '工资报表 $fileName',
+        );
+      }
+    } catch (e) {
+      _showSnackBar('导出失败: $e');
+    }
+  }
+
+  void _showSnackBar(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -87,7 +224,16 @@ class _WageScreenState extends State<WageScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('工资计算')),
+      appBar: AppBar(
+        title: const Text('工资计算'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: '导出 Excel',
+            onPressed: _exportToExcel,
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // 日期范围选择与总计

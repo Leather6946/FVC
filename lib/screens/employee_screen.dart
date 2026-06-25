@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/employee.dart';
 import '../models/department.dart';
 import '../database/database_helper.dart';
-import 'ocr_employee_screen.dart';
 
 class EmployeeScreen extends StatefulWidget {
   const EmployeeScreen({super.key});
@@ -211,33 +210,12 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
     }
   }
 
-  Future<void> _openOcr() async {
-    final changed = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(builder: (_) => const OcrEmployeeScreen()),
-    );
-    if (changed == true) {
-      _load();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('员工管理'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.groups_outlined),
-            tooltip: '部门管理',
-            onPressed: _manageDepartments,
-          ),
-          IconButton(
-            icon: const Icon(Icons.camera_alt_outlined),
-            tooltip: '拍照添加员工',
-            onPressed: _openOcr,
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -272,7 +250,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _employees.isEmpty
-                    ? const Center(child: Text('暂无员工，点击右下角添加'))
+                    ? const Center(child: Text('暂无员工'))
                     : RefreshIndicator(
                         onRefresh: () => _load(keyword: _searchCtrl.text),
                         child: ListView.builder(
@@ -288,9 +266,8 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                               ),
                               child: ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer,
+                                  backgroundColor: theme
+                                      .colorScheme.primaryContainer,
                                   child: Text(
                                     e.name.isNotEmpty ? e.name[0] : '?',
                                     style: const TextStyle(
@@ -331,11 +308,48 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                         ),
                       ),
           ),
+          // 底部操作栏
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: OutlinedButton.icon(
+                      onPressed: _manageDepartments,
+                      icon: const Icon(Icons.groups_outlined, size: 18),
+                      label: const Text('部门管理',
+                          style: TextStyle(fontSize: 14)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: FilledButton.icon(
+                      onPressed: () => _showForm(),
+                      icon: const Icon(Icons.person_add, size: 18),
+                      label: const Text('添加员工',
+                          style: TextStyle(fontSize: 14)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.person_add),
-        onPressed: () => _showForm(),
       ),
     );
   }

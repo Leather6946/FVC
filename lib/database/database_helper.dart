@@ -305,6 +305,7 @@ class DatabaseHelper {
   Future<List<ProductionRecord>> getRecords({
     int? employeeId,
     int? processId,
+    int? productTypeId,
     String? startDate,
     String? endDate,
   }) async {
@@ -318,6 +319,10 @@ class DatabaseHelper {
     if (processId != null) {
       conds.add('pr.process_id = ?');
       args.add(processId);
+    }
+    if (productTypeId != null) {
+      conds.add('p.product_type_id = ?');
+      args.add(productTypeId);
     }
     if (startDate != null) {
       conds.add('pr.record_date >= ?');
@@ -386,5 +391,13 @@ class DatabaseHelper {
     return (await database).rawQuery(
       "SELECT p.id AS process_id, pt.name AS product_name, p.name AS process_name, p.piece_rate, p.unit, SUM(pr.quantity) AS total_quantity, SUM(pr.quantity * p.piece_rate) AS total_wage FROM production_records pr LEFT JOIN processes p ON pr.process_id = p.id LEFT JOIN product_types pt ON p.product_type_id = pt.id WHERE pr.employee_id = ? AND pr.record_date BETWEEN ? AND ? GROUP BY p.id ORDER BY p.id ASC",
       [employeeId, startDate, endDate]);
+  }
+
+  /// 关闭数据库连接（用于恢复数据前）
+  Future<void> closeDatabase() async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
   }
 }
