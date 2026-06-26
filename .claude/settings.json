@@ -16,7 +16,27 @@
       "Bash(node -e \"require\\('fs'\\).writeFileSync\\('d:/piece_rate_wage/lib/screens/backup_screen.dart', 'test content\\\\n', 'utf8'\\);\")",
       "Bash(git rm *)",
       "Bash(git merge *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(dir /s /b \"D:\\\\piece_rate_wage\\\\.pub-cache\\\\hosted\\\\pub.dev\\\\file_picker*\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\piece_rate_wage\\\\.pub-cache\\\\hosted\\\\pub.dev\\\\\" -Directory -Filter \"file_picker*\" | Select-Object FullName 2>&1)",
+      "Bash(cmd /c \"dir D:\\\\piece_rate_wage\\\\.pub-cache\\\\hosted\\\\pub.dev\\\\file_picker*\")",
+      "Bash(cmd //c \"flutter pub get\")",
+      "Bash(cmd //c \"dir D:\\\\piece_rate_wage\\\\.pub-cache\\\\hosted\\\\pub.flutter-io.cn\\\\file_picker-11.0.2\\\\android\\\\src\\\\main\\\\java\")",
+      "Bash(cmd //c \"dir /b D:\\\\piece_rate_wage\\\\.pub-cache\\\\hosted\\\\pub.flutter-io.cn\\\\file_picker-11.0.2\\\\android\")",
+      "Bash(cmd //c \"dir /s /b D:\\\\piece_rate_wage\\\\.pub-cache\\\\hosted\\\\pub.flutter-io.cn\\\\file_picker-11.0.2\\\\android\\\\src\")",
+      "Bash(cmd //c \"flutter build apk --debug\")",
+      "Bash(cmd //c \"flutter analyze\")",
+      "Bash(cmd //c \"dir /b D:\\\\piece_rate_wage\\\\android\\\\app\\\\src\\\\main\\\\java\")",
+      "Bash(cmd //c \"dir /s /b D:\\\\piece_rate_wage\\\\android\\\\app\\\\src\\\\main\\\\java\")",
+      "Bash(cmd //c \"dir /s /b D:\\\\piece_rate_wage\\\\android\\\\app\\\\src\\\\main\\\\kotlin\")",
+      "Bash(cmd //c \"dir build\\\\app\\\\outputs\\\\flutter-apk\")",
+      "Bash(cmd //c \"flutter build apk --release\")",
+      "Bash(cmd //c \"flutter build apk --release --split-per-abi\")",
+      "Bash(cmd //c \"git status\")",
+      "Bash(cmd //c \"git restore --staged android/build/reports/problems/problems-report.html macos/Flutter/GeneratedPluginRegistrant.swift .claude/settings.json && git add android/app/src/main/kotlin/com/bagfactory/piece_rate_wage/MainActivity.kt lib/ pubspec.yaml pubspec.lock && git status\")",
+      "Bash(cmd //c \"git commit -m \\\\\"备份功能完善：保存到下载文件夹+清空数据库+轻量化+日期排序\\\\\"\")",
+      "Bash(cmd //c \"git restore --staged .claude/settings.json android/build/reports/problems/problems-report.html macos/Flutter/GeneratedPluginRegistrant.swift\")",
+      "Bash(cmd //c \"dir README* /b\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\朱家泳\\.gradle\\caches"
