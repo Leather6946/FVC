@@ -14,7 +14,9 @@
       "Bash(git -c core.safecrlf=false diff --stat)",
       "Bash(python -c \"import base64, sys; sys.stdout.reconfigure\\(encoding='utf-8'\\); print\\(base64.b64encode\\(sys.stdin.buffer.read\\(\\)\\).decode\\(\\)\\)\")",
       "Bash(node -e \"require\\('fs'\\).writeFileSync\\('d:/piece_rate_wage/lib/screens/backup_screen.dart', 'test content\\\\n', 'utf8'\\);\")",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(git merge *)",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\朱家泳\\.gradle\\caches"
