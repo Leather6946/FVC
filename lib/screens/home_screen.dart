@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('包袋厂计件工资管理系统')),
+      appBar: AppBar(title: const Text('计件工资管理系统')),
       body: RefreshIndicator(
         onRefresh: _loadStats,
         child: ListView(

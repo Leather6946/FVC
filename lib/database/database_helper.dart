@@ -43,7 +43,6 @@ class DatabaseHelper {
     await db.execute(
       "CREATE TABLE production_records (id INTEGER PRIMARY KEY AUTOINCREMENT, employee_id INTEGER NOT NULL, process_id INTEGER NOT NULL, quantity REAL NOT NULL, record_date TEXT NOT NULL, note TEXT, created_at TEXT, FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE, FOREIGN KEY (process_id) REFERENCES processes(id) ON DELETE CASCADE)",
     );
-    await _insertSampleData(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -88,8 +87,9 @@ class DatabaseHelper {
     }
   }
 
-  // ==================== Sample Data ====================
+  // ==================== Sample Data (optional, not called on fresh install) ====================
 
+  // ignore: unused_element
   Future<void> _insertSampleData(Database db) async {
     final now = DateTime.now().toIso8601String();
 
@@ -308,6 +308,7 @@ class DatabaseHelper {
     int? productTypeId,
     String? startDate,
     String? endDate,
+    bool orderAsc = false,
   }) async {
     final db = await database;
     final conds = <String>[];
@@ -333,8 +334,9 @@ class DatabaseHelper {
       args.add(endDate);
     }
     final ws = conds.isNotEmpty ? 'WHERE ${conds.join(' AND ')}' : '';
+    final orderDir = orderAsc ? 'ASC' : 'DESC';
     final sql =
-        "SELECT pr.*, e.name AS employee_name, p.name AS process_name, p.piece_rate, p.unit, pt.name AS product_type_name FROM production_records pr LEFT JOIN employees e ON pr.employee_id = e.id LEFT JOIN processes p ON pr.process_id = p.id LEFT JOIN product_types pt ON p.product_type_id = pt.id $ws ORDER BY pr.record_date DESC, pr.id DESC";
+        "SELECT pr.*, e.name AS employee_name, p.name AS process_name, p.piece_rate, p.unit, pt.name AS product_type_name FROM production_records pr LEFT JOIN employees e ON pr.employee_id = e.id LEFT JOIN processes p ON pr.process_id = p.id LEFT JOIN product_types pt ON p.product_type_id = pt.id $ws ORDER BY pr.record_date $orderDir, pr.id $orderDir";
     final maps = await db.rawQuery(sql, args);
     return maps.map((m) => ProductionRecord.fromMap(m)).toList();
   }

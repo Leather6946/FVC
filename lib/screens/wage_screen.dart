@@ -112,6 +112,7 @@ class _WageScreenState extends State<WageScreen> {
       }
 
       double grandTotal = 0;
+      double grandTotalQty = 0;
       for (int i = 0; i < _summary.length; i++) {
         final s = _summary[i];
         final name = s['employee_name'] as String? ?? '';
@@ -119,6 +120,7 @@ class _WageScreenState extends State<WageScreen> {
         final qty = (s['total_quantity'] as num?)?.toDouble() ?? 0;
         final wage = (s['total_wage'] as num?)?.toDouble() ?? 0;
         grandTotal += wage;
+        grandTotalQty += qty;
         summarySheet.appendRow([
           TextCellValue('${i + 1}'),
           TextCellValue(name),
@@ -132,7 +134,7 @@ class _WageScreenState extends State<WageScreen> {
         TextCellValue(''),
         TextCellValue('合计'),
         TextCellValue(''),
-        IntCellValue(0),
+        IntCellValue(grandTotalQty.toInt()),
         DoubleCellValue(grandTotal),
       ]);
       final lastRow = summarySheet.row(
@@ -165,16 +167,19 @@ class _WageScreenState extends State<WageScreen> {
       for (final s in _summary) {
         final eid = s['employee_id'] as int;
         final name = s['employee_name'] as String? ?? '';
-        final detail = await _db.getEmployeeWageDetail(
-          eid, _startStr, _endStr,
+        final records = await _db.getRecords(
+          employeeId: eid,
+          startDate: _startStr,
+          endDate: _endStr,
+          orderAsc: true,
         );
-        for (final d in detail) {
-          final pt = d['product_name'] as String? ?? '';
-          final pn = d['process_name'] as String? ?? '';
-          final rate = (d['piece_rate'] as num?)?.toDouble() ?? 0;
-          final dqty = (d['total_quantity'] as num?)?.toDouble() ?? 0;
-          final dwage = (d['total_wage'] as num?)?.toDouble() ?? 0;
-          final date = d['record_date'] as String? ?? '';
+        for (final r in records) {
+          final pt = r.productTypeName ?? '';
+          final pn = r.processName ?? '';
+          final rate = r.pieceRate ?? 0;
+          final dqty = r.quantity;
+          final dwage = r.quantity * rate;
+          final date = r.recordDate;
           detailSheet.appendRow([
             TextCellValue('$rowIdx'),
             TextCellValue(name),
